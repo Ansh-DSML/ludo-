@@ -1,17 +1,5 @@
-# backend/schemas/models.py
-
 from pydantic import BaseModel
-from typing import List, Dict, Optional
-
-
-class PieceState(BaseModel):
-    position: int
-
-
-class PlayerState(BaseModel):
-    name: str
-    pieces: List[PieceState]
-
+from typing import Dict, List, Optional
 
 class GameStateResponse(BaseModel):
     game_state: Dict[str, List[int]]
@@ -21,10 +9,8 @@ class DiceRollResponse(BaseModel):
     player: str
     roll: int
 
-
 class MoveRequest(BaseModel):
     piece_index: int
-
 
 class MoveResponse(BaseModel):
     player: str
@@ -33,3 +19,30 @@ class MoveResponse(BaseModel):
     turn_changed: bool
     game_won: bool
 
+class MoveLogEntry(BaseModel):
+    turn: int
+    player: str
+    roll: int
+    piece_index: int
+    from_pos: int
+    to_pos: int
+    captured: Optional[str] = None
+
+class GameHistoryResponse(BaseModel):
+    history: List[MoveLogEntry]
+
+class PlayerStats(BaseModel):
+    wins: int = 0
+    losses: int = 0
+    total_moves: int = 0
+    tokens_captured: int = 0
+
+class StatsResponse(BaseModel):
+    stats: Dict[str, PlayerStats]
+
+class LeaderboardEntry(BaseModel):
+    player: str
+    wins: int
+
+class LeaderboardResponse(BaseModel):
+    leaderboard: List[LeaderboardEntry]

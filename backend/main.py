@@ -2,6 +2,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from backend.schemas.models import GameStateResponse, DiceRollResponse, MoveRequest, MoveResponse
 from backend.game_engine.game import Game
+from backend.schemas.models import GameHistoryResponse, StatsResponse, LeaderboardResponse
+from fastapi.responses import JSONResponse
+
 
 app = FastAPI()
 
@@ -55,3 +58,17 @@ def move_piece(move_request: MoveRequest):
         turn_changed=(roll != 6),
         game_won=game_won
     )
+
+@app.get("/game/history")
+def get_history():
+    return JSONResponse(content=[entry.dict() for entry in game.get_history()])
+
+@app.get("/game/stats")
+def get_stats():
+    stats_dict = {player: stats.dict() for player, stats in game.get_stats().items()}
+    return JSONResponse(content=stats_dict)
+
+@app.get("/game/leaderboard")
+def get_leaderboard():
+    leaderboard = game.get_leaderboard()
+    return JSONResponse(content=[entry.dict() for entry in leaderboard])

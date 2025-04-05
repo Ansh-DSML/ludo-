@@ -1,24 +1,20 @@
-# backend/game_engine/piece.py
-
 class Piece:
     def __init__(self):
-        self.position = -1  # -1 means in base
+        self.position = -1  # -1 means in the base
 
-    def move(self, steps):
-        if self.position == -1:
-            if steps == 6:
-                self.position = 0
-        else:
-            self.position += steps
-            if self.position > 57:
-                self.position = 57  # Cap at winning position
+    def move(self, steps, all_players, current_player_name):
+        if self.position == -1 and steps == 6:
+            self.position = 0  # Enter the board
+        elif self.position >= 0:
+            self.position += steps  # Move forward
 
-    def kill(self):
-        self.position = -1
+        # Check for captures (only if on board)
+        if self.position > 0:
+            for player in all_players:
+                if player.name != current_player_name:
+                    for piece in player.pieces:
+                        if piece.position == self.position:
+                            piece.position = -1  # send captured piece back to base
+                            return player  # captured player
 
-    def has_finished(self):
-        return self.position == 57
-
-    def is_active(self):
-        return self.position != -1 and not self.has_finished()
-
+        return None  # No one captured
