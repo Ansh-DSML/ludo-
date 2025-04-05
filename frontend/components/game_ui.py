@@ -72,3 +72,30 @@ def fetch_game_state():
         st.error("Failed to fetch game state.")
         return None
 
+def show_history():
+    import pandas as pd
+    response = requests.get(f"{API_URL}/game/history")
+    if response.status_code == 200:
+        history = response.json()["history"]
+        df = pd.DataFrame(history)
+        st.markdown("### 📜 Game History")
+        st.dataframe(df)
+
+
+def show_stats():
+    response = requests.get(f"{API_URL}/game/stats")
+    if response.status_code == 200:
+        stats = response.json()["stats"]
+        st.markdown("### 📊 Player Stats")
+        for player, data in stats.items():
+            st.markdown(f"**{player}**")
+            st.write(data)
+
+
+def show_leaderboard():
+    response = requests.get(f"{API_URL}/game/leaderboard")
+    if response.status_code == 200:
+        leaderboard = response.json()["leaderboard"]
+        st.markdown("### 🏆 Leaderboard")
+        for i, entry in enumerate(leaderboard, 1):
+            st.write(f"{i}. {entry['player']} - {entry['wins']} wins")
