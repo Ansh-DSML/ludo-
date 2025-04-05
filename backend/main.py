@@ -59,6 +59,11 @@ def move_piece(move_request: MoveRequest):
         game_won=game_won
     )
 
+@app.post("/game/next-turn")
+def next_turn():
+    game.next_turn()
+    return {"message": "Turn skipped"}
+
 @app.get("/game/history")
 def get_history():
     return JSONResponse(content=[entry.dict() for entry in game.get_history()])

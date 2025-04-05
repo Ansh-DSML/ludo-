@@ -65,32 +65,47 @@ if game_data:
     st.session_state.game_state = game_data["game_state"]
     st.session_state.current_turn = game_data["current_turn"]
 
+    player = st.session_state.current_turn
+    player_pieces = st.session_state.game_state[player]
+
     draw_board(st.session_state.game_state)
-    draw_player_info(st.session_state.current_turn, st.session_state.game_state)
+    draw_player_info(player, st.session_state.game_state)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("🎲 Roll Dice"):
-            result = roll_dice()
-            if result:
-                st.session_state.dice_value = result["roll"]
-                st.session_state.rolled = True
+        if not st.session_state.rolled:
+            if st.button("🎲 Roll Dice"):
+                result = roll_dice()
+                if result:
+                    roll_value = result["roll"]
+                    st.session_state.dice_value = roll_value
+                    st.session_state.rolled = True
+
+                    # if roll is not 6 and all pieces are at -1, skip turn
+                    if roll_value != 6 and all(pos == -1 for pos in player_pieces):
+                        st.warning("You need to roll a 6 to start the game. Turn skipped.")
+                        st.session_state.rolled = False
+                        st.session_state.dice_value = None
+                        requests.post("http://localhost:8000/game/next-turn")
+                        st.rerun()
 
     with col2:
-        player = st.session_state.current_turn
         piece_index = st.selectbox("Select Piece Index (0-3)", [0, 1, 2, 3], key="piece_select")
         if st.button("🚀 Move Piece"):
             if not st.session_state.rolled:
                 st.warning("Roll the dice before moving a piece!")
             else:
-                move_result = move_piece(player, piece_index)
-                if move_result:
+                 move_result = move_piece(player, piece_index)
+                 if move_result:
                     st.success(f"{player}'s piece moved to {move_result['moved_to']}")
-                if st.session_state.dice_value != 6:
-                    st.session_state.rolled = False
-                    st.session_state.dice_value = None
 
+                # Reset rolled state based on dice value
+                 if st.session_state.dice_value == 6:
+                     st.session_state.rolled = False  # Allow rolling again for the same player
+                 else:
+                     st.session_state.rolled = False  # Reset for next player's turn
+                     st.session_state.dice_value = None  # Clear dice value
     if st.session_state.dice_value is not None:
         st.markdown(f"### 🎲 You rolled: `{st.session_state.dice_value}`")
 
